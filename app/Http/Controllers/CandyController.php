@@ -9,7 +9,7 @@ class CandyController extends Controller
 {
     public function index(){
         return view('index',[
-            'candies' => Candy::all()
+            'candies' => Candy::where('is_active', 1)->get()
         ]);
     }
     public function candy($id){

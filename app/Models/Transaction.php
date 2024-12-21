@@ -14,7 +14,14 @@ class Transaction extends Model
         'name',
         'email',
         'amount',
+        'total_price',
         'status',
         'snap_token',
+        'candy_id',
     ];
+
+    public function candy()
+    {
+        return $this->hasMany(Candy::class);
+    }
 }

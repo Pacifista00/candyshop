@@ -12,4 +12,9 @@ class Candy extends Model
     protected $fillable = [
         'name', 'price', 'stock', 'is_active', 'image_path'
     ];
+
+    public function transaction()
+    {
+        return $this->hasMany(Transaction::class);
+    }
 }

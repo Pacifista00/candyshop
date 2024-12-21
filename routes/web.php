@@ -16,7 +16,7 @@ use App\http\controllers\MidtransController;
 */
 use Illuminate\Support\Facades\Auth;
 
-Route::get('/custom-logout', function () {
+Route::get('/logout', function () {
     Auth::logout();
     session()->invalidate();
     session()->regenerateToken();

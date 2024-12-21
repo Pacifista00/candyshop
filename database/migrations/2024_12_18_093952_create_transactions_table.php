@@ -17,8 +17,10 @@ return new class extends Migration
             $table->string('name');
             $table->string('email');
             $table->double('amount');
+            $table->double('total_price');
             $table->enum('status', ['pending','success']);
             $table->string('snap_token')->nullable();
+            $table->foreignId('candy_id')->constrained()->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();
         });
     }

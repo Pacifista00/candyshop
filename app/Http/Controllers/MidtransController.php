@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Candy;
 use App\Models\Transaction;
 use Midtrans\Config;
 use Midtrans\Snap;
@@ -17,6 +18,7 @@ class MidtransController extends Controller
         Config::$is3ds        = config('midtrans.is3ds');
     }
     public function pay(Request $request){
+        $candy = Candy::find($request->candy_id);
         $orderId = mt_rand(100000, 999999);
 
         $params = array(
@@ -24,7 +26,7 @@ class MidtransController extends Controller
                 'order_id'   => $orderId,
                 'name'   => $request->name,
                 'email'  => $request->email,
-                'gross_amount' => $request->amount,
+                'gross_amount' => $request->amount*$candy->price,
             ),
             'customer_details' => array(
                 'name' => $request->name,
@@ -38,17 +40,19 @@ class MidtransController extends Controller
             'name'   => $request->name,
             'email'  => $request->email,
             'amount' => $request->amount,
+            'total_price' => $request->amount*$candy->price,
             'status' => 'pending',
             'snap_token' => $snapToken,
+            'candy_id' => $candy->id,
         ]);
 
         return view('checkout', [
             'snapToken' => $snapToken,
             'transaction' => $newTransaction,
+            'candy' => $candy,
         ]);
     }
     public function afterPayment(Request $request){
-
         $notif = new \Midtrans\Notification();
 
         $transaction = $notif->transaction_status;
@@ -59,27 +63,27 @@ class MidtransController extends Controller
         if ($transaction == 'capture') {
             if ($type == 'credit_card'){
                 if($fraud == 'accept'){
-                    // TODO set payment status in merchant's database to 'Success'
                     echo "Transaction order_id: " . $order_id ." successfully captured using " . $type;
 
                     $transactionData = Transaction::where('order_id', $order_id)->first();
-                    $transactionData->update(['status' => 'success']);
+                    $candy = Candy::find($transactionData->candy_id);
+                    $candy->update([
+                        'stock' => $candy->stock-$transactionData->amount
+                    ]);
+                    $transactionData->update([
+                        'status' => 'success'
+                    ]);
                 }
             }
         }else if ($transaction == 'settlement'){
-            // TODO set payment status in merchant's database to 'Settlement'
             echo "Transaction order_id: " . $order_id ." successfully transfered using " . $type;
         }else if($transaction == 'pending'){
-            // TODO set payment status in merchant's database to 'Pending'
             echo "Waiting customer to finish transaction order_id: " . $order_id . " using " . $type;
         }else if ($transaction == 'deny') {
-            // TODO set payment status in merchant's database to 'Denied'
             echo "Payment using " . $type . " for transaction order_id: " . $order_id . " is denied.";
         }else if ($transaction == 'expire') {
-            // TODO set payment status in merchant's database to 'expire'
             echo "Payment using " . $type . " for transaction order_id: " . $order_id . " is expired.";
         }else if ($transaction == 'cancel') {
-            // TODO set payment status in merchant's database to 'Denied'
             echo "Payment using " . $type . " for transaction order_id: " . $order_id . " is canceled.";
         }
     }
