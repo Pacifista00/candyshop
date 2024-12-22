@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('email');
             $table->double('amount');
             $table->double('total_price');
-            $table->enum('status', ['pending','success']);
+            $table->string('status');
             $table->string('snap_token')->nullable();
             $table->foreignId('candy_id')->constrained()->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();
